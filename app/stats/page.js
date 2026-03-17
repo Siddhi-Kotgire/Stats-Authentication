@@ -528,78 +528,8 @@ function ExportMenu({ users, tools, period }) {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  function doCSV() {
-    const headers = [
-      "Name",
-      "Email",
-      "Role",
-      "Dept",
-      "Status",
-      ...tools.map((t) => `${t.name} (${unit})`),
-      `Total (${unit})`,
-    ];
-    const rows = [...users]
-      .sort((a, b) => b.total - a.total)
-      .map((u) => [
-        u.name,
-        u.email,
-        u.role,
-        u.dept,
-        u.status,
-        ...u.tools,
-        u.total,
-      ]);
-    const csv = [headers, ...rows]
-      .map((r) => r.map((v) => `"${v}"`).join(","))
-      .join("\n");
-    downloadFile(`usage-${period}-export.csv`, csv, "text/csv");
-    setOpen(false);
-  }
-
-  function doJSON() {
-    const payload = {
-      org: ORG,
-      period,
-      unit,
-      exportedAt: new Date().toISOString(),
-      tools,
-      users: [...users]
-        .sort((a, b) => b.total - a.total)
-        .map((u, i) => ({
-          rank: i + 1,
-          id: u.id,
-          name: u.name,
-          email: u.email,
-          role: u.role,
-          dept: u.dept,
-          status: u.status,
-          tools: Object.fromEntries(
-            tools.map((t, ti) => [t.name, u.tools[ti]]),
-          ),
-          total: u.total,
-        })),
-    };
-    downloadFile(
-      `usage-${period}-export.json`,
-      JSON.stringify(payload, null, 2),
-      "application/json",
-    );
-    setOpen(false);
-  }
 
   const options = [
-    {
-      label: "Export as CSV",
-      icon: "📄",
-      desc: "Spreadsheet-friendly",
-      action: doCSV,
-    },
-    {
-      label: "Export as JSON",
-      icon: "{ }",
-      desc: "Raw structured data",
-      action: doJSON,
-    },
     {
       label: "Print / Save PDF",
       icon: "🖨",
