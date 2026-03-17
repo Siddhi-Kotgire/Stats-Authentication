@@ -1,0 +1,166 @@
+// ─── data.js ──────────────────────────────────────────────────────────────────
+
+export const TOOL_COLORS = {
+  claude: "#2563EB",
+  cursor: "#16A34A",
+  copilot: "#D97706",
+  chatgpt: "#DC2626",
+};
+
+export const ORG = {
+  name: "Organisation 1",
+  plan: "Enterprise",
+  since: "Jan 2026",
+};
+
+export const tools = [
+  { id: "tool1", name: "Tool 1", color: "#2563EB" },
+  { id: "tool2", name: "Tool 2", color: "#16A34A" },
+  { id: "tool3", name: "Tool 3", color: "#D97706" },
+  { id: "tool4", name: "Tool 4", color: "#DC2626" },
+];
+
+// ── Raw user data ─────────────────────────────────────────────────────────────
+// hours[] and days[] index matches tools[] order
+export const users = [
+  {
+    id: "USR-001",
+    colorIdx: 0,
+    name: "Alice Johnson",
+    role: "Engineer",
+    dept: "Engineering",
+    email: "alice@acme.com",
+    status: "online",
+    lastActive: "Just now",
+    hours: [14, 9, 8, 4],
+    days: [6, 5, 4, 2],
+  },
+  {
+    id: "USR-002",
+    colorIdx: 1,
+    name: "Bob Smith",
+    role: "Designer",
+    dept: "Product",
+    email: "bob@acme.com",
+    status: "online",
+    lastActive: "2 min ago",
+    hours: [12, 8, 7, 5],
+    days: [5, 4, 3, 2],
+  },
+  {
+    id: "USR-003",
+    colorIdx: 2,
+    name: "Carol White",
+    role: "PM",
+    dept: "Product",
+    email: "carol@acme.com",
+    status: "away",
+    lastActive: "15 min ago",
+    hours: [9, 8, 6, 3],
+    days: [4, 3, 3, 1],
+  },
+  {
+    id: "USR-004",
+    colorIdx: 3,
+    name: "David Lee",
+    role: "Data Analyst",
+    dept: "Analytics",
+    email: "david@acme.com",
+    status: "online",
+    lastActive: "5 min ago",
+    hours: [8, 7, 5, 4],
+    days: [3, 3, 2, 2],
+  },
+  {
+    id: "USR-005",
+    colorIdx: 4,
+    name: "Eva Martinez",
+    role: "Engineer",
+    dept: "Engineering",
+    email: "eva@acme.com",
+    status: "offline",
+    lastActive: "1 hr ago",
+    hours: [10, 10, 6, 7],
+    days: [4, 4, 3, 3],
+  },
+  {
+    id: "USR-006",
+    colorIdx: 0,
+    name: "Frank Chen",
+    role: "Backend Dev",
+    dept: "Engineering",
+    email: "frank@acme.com",
+    status: "online",
+    lastActive: "Just now",
+    hours: [13, 6, 9, 3],
+    days: [5, 3, 4, 1],
+  },
+  {
+    id: "USR-007",
+    colorIdx: 1,
+    name: "Grace Kim",
+    role: "QA Engineer",
+    dept: "Engineering",
+    email: "grace@acme.com",
+    status: "away",
+    lastActive: "30 min ago",
+    hours: [7, 11, 4, 6],
+    days: [3, 5, 2, 3],
+  },
+  {
+    id: "USR-008",
+    colorIdx: 2,
+    name: "Henry Park",
+    role: "DevOps",
+    dept: "Infrastructure",
+    email: "henry@acme.com",
+    status: "offline",
+    lastActive: "3 hrs ago",
+    hours: [6, 5, 10, 2],
+    days: [2, 2, 4, 1],
+  },
+];
+
+// ── Derivation helpers ────────────────────────────────────────────────────────
+function deriveUsers(period) {
+  return users.map((u) => {
+    const toolVals = period === "hours" ? u.hours : u.days;
+    return {
+      ...u,
+      tools: toolVals,
+      total: toolVals.reduce((a, b) => a + b, 0),
+    };
+  });
+}
+
+function deriveTools(period) {
+  const derived = deriveUsers(period);
+  return tools.map((t, i) => ({
+    ...t,
+    total: derived.reduce((s, u) => s + u.tools[i], 0),
+  }));
+}
+
+export function getDataForPeriod(period) {
+  const u = deriveUsers(period);
+  const t = deriveTools(period);
+  const totalVal = u.reduce((s, x) => s + x.total, 0);
+  const sorted = [...u].sort((a, b) => b.total - a.total);
+  const sortedTools = [...t].sort((a, b) => b.total - a.total);
+  return {
+    users: u,
+    tools: t,
+    orgStats: {
+      totalUsers: u.length,
+      totalVal,
+      avgPerUser: Math.round(totalVal / u.length),
+      activeUsers: u.filter((x) => x.status === "online").length,
+      mostActiveUser: sorted[0],
+      mostUsedTool: sortedTools[0],
+    },
+  };
+}
+
+// Default exports for backward compat (hours as default)
+const _default = getDataForPeriod("hours");
+export const orgStats = _default.orgStats;
